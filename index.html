@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechLaptop - Boutique en ligne</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Styles précédents... */
+        
+        /* Nouveaux styles */
+        .cart-panel {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: right 0.3s;
+            padding: 1rem;
+            z-index: 1000;
+        }
+        
+        .cart-open {
+            right: 0;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #003366;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .filter-btn.active {
+            background: #003366;
+            color: white;
+        }
+        
+        .checkout-section {
+            display: none;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header avec icône panier -->
+    <header>
+        <h1>TechLaptop</h1>
+        <div class="cart-icon" onclick="toggleCart()">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cart-count">0</span>
+        </div>
+    </header>
+
+    <!-- Panier -->
+    <div class="cart-panel" id="cartPanel">
+        <h3>Votre Panier</h3>
+        <div id="cart-items"></div>
+        <p>Total: <span id="cart-total">0€</span></p>
+        <button onclick="showCheckout()">Commander</button>
+    </div>
+
+    <!-- Filtres -->
+    <div class="filters">
+        <button class="filter-btn active" data-category="all">Tous</button>
+        <button class="filter-btn" data-category="gaming">Gaming</button>
+        <button class="filter-btn" data-category="bureautique">Bureautique</button>
+        <button class="filter-btn" data-category="mac">Mac</button>
+    </div>
+
+    <!-- Section Checkout -->
+    <section class="checkout-section" id="checkoutSection">
+        <h2>Paiement Sécurisé</h2>
+        <form id="checkoutForm">
+            <div id="card-element"></div>
+            <button type="submit">Payer</button>
+        </form>
+    </section>
+
+    <script>
+        // Données produits
+        const products = [
+            {
+                id: 1,
+                name: "Laptop Gamer",
+                price: 1499,
+                category: "gaming",
+                specs: "RTX 4070, Intel i7, 16GB RAM"
+            },
+            // Ajouter d'autres produits...
+        ];
+
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Gestion du panier
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            cart.push(product);
+            updateCart();
+        }
+
+        function updateCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            document.getElementById('cart-count').textContent = cart.length;
+            // Mettre à jour l'affichage du panier...
+        }
+
+        // Filtrage produits
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const category = btn.dataset.category;
+                filterProducts(category);
+            });
+        });
+
+        function filterProducts(category) {
+            // Logique de filtrage...
+        }
+
+        // Paiement Stripe (exemple)
+        const stripe = Stripe('pk_test_votre_cle_publique');
+        const elements = stripe.elements();
+        const cardElement = elements.create('card');
+        cardElement.mount('#card-element');
+
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const { error, paymentMethod } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement
+            });
+            if (error) {
+                console.error(error);
+            } else {
+                // Envoyer le paymentMethod.id à votre backend
+                processPayment(paymentMethod.id);
+            }
+        });
+
+        function toggleCart() {
+            document.getElementById('cartPanel').classList.toggle('cart-open');
+        }
+
+        function showCheckout() {
+            document.getElementById('checkoutSection').style.display = 'block';
+        }
+    </script>
+    <script src="https://js.stripe.com/v3/"></script>
+</body>
+</html>
